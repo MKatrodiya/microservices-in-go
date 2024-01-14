@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -66,10 +67,23 @@ type KeyProduct struct{}
 
 func (p *Products) MiddlewareValidateProduct(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		//Serialize product from request body
 		prod := data.Product{}
 		err := prod.FromJSON(r.Body)
 		if err != nil {
+			p.l.Println("[ERROR]: Deserializing product data")
 			http.Error(w, "Invalid product data", http.StatusBadRequest)
+			return
+		}
+
+		//Validate product
+		err = prod.ValidateProduct()
+		if err != nil {
+			p.l.Println("[ERROR]: Validating product data")
+			http.Error(
+				w,
+				fmt.Sprintf("Invalid product data: %s", err),
+				http.StatusBadRequest)
 			return
 		}
 
