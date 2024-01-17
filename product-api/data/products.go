@@ -62,13 +62,12 @@ func getNextID() int {
 // UpdateProduct modifies the existing product with the given id
 // with the given updated product
 // If a product is not found, this returns a ProductNotFound error
-func UpdateProduct(id int, updatedProduct *Product) error {
-	_, pos, err := getProductByID(id)
-	if err != nil {
-		return err
+func UpdateProduct(updatedProduct *Product) error {
+	i := findIndexByProductID(updatedProduct.ID)
+	if i == -1 {
+		return ErrProductNotFound
 	}
-	updatedProduct.ID = id
-	productsList[pos] = updatedProduct
+	productsList[i] = updatedProduct
 	return nil
 }
 
@@ -102,13 +101,13 @@ var ErrProductNotFound = fmt.Errorf("Product not found")
 // getProductByID returns a product from the database whose id matches with
 // the given id
 // If a product is not found, this returns a ProductNotFound error
-func getProductByID(id int) (*Product, int, error) {
-	for i, p := range productsList {
+func GetProductByID(id int) (*Product, error) {
+	for _, p := range productsList {
 		if p.ID == id {
-			return p, i, nil
+			return p, nil
 		}
 	}
-	return nil, -1, ErrProductNotFound
+	return nil, ErrProductNotFound
 }
 
 var productsList = []*Product{

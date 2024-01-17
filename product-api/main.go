@@ -9,33 +9,49 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/MKatrodiya/ProductMicroservices/data"
 	"github.com/MKatrodiya/ProductMicroservices/handlers"
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
 )
 
 func main() {
 	l := log.New(os.Stdout, "product-api", log.LstdFlags)
-	ph := handlers.NewProducts(l)
+	v := data.NewValidation()
+	ph := handlers.NewProducts(l, v)
 
 	//create a router
 	router := mux.NewRouter()
 	getRouter := router.Methods(http.MethodGet).Subrouter()
-	getRouter.HandleFunc("/", ph.GetProducts)
+	getRouter.HandleFunc("/products", ph.GetAll)
+	getRouter.HandleFunc("/products/{id:[0-9]+}", ph.GetSingle)
 
 	postRouter := router.Methods(http.MethodPost).Subrouter()
-	postRouter.HandleFunc("/", ph.AddProduct)
+	postRouter.HandleFunc("/", ph.Add)
 	postRouter.Use(ph.MiddlewareValidateProduct)
 
 	putRouter := router.Methods(http.MethodPut).Subrouter()
-	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProduct)
+	putRouter.HandleFunc("/{id:[0-9]+}", ph.Update)
 	putRouter.Use(ph.MiddlewareValidateProduct)
+
+	deleteRouter := router.Methods(http.MethodDelete).Subrouter()
+	deleteRouter.HandleFunc("/{id:[0-9]+}", ph.Delete)
+
+	// handler for documentation
+	opts := middleware.RedocOpts{
+		SpecURL: "/swagger.yaml",
+	}
+	sh := middleware.Redoc(opts, nil)
+
+	getRouter.Handle("/docs", sh)
+	getRouter.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
 	server := &http.Server{
 		Addr:         ":9090",
 		Handler:      router,
 		IdleTimeout:  120 * time.Second,
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	go func() {
