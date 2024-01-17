@@ -1,3 +1,17 @@
+// Package classification of Product API
+//
+// # Documentation for Product API
+//
+// Schemes: HTTP
+// BasePath: /
+// Version: 1.0.0
+//
+// Consumes:
+// - application/json
+//
+// Produces:
+// - application/json
+// swagger:meta
 package handlers
 
 import (
@@ -11,6 +25,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// A list of products returned in the response
+// swagger:response productsResponse
+type productsResponseWrapper struct {
+	// All the products in system
+	// in: body
+	Body []*data.Product
+}
+
 type Products struct {
 	l *log.Logger
 }
@@ -19,6 +41,12 @@ func NewProducts(l *log.Logger) *Products {
 	return &Products{l}
 }
 
+// swagger:route GET /products products listProducts
+// Returns the list of products
+// responses:
+// 		200:productsResponse
+
+// GetProducts returns the list of products from the data store
 func (p *Products) GetProducts(w http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle GET request")
 	//fetch products from the datastore
@@ -26,7 +54,7 @@ func (p *Products) GetProducts(w http.ResponseWriter, r *http.Request) {
 
 	//serialize the list to JSON
 	w.Header().Add("Content-Type", "application/json")
-	err := productsList.ToJSON(w)
+	err := data.ToJSON(productsList, w)
 	if err != nil {
 		http.Error(w, "Unable to marshal data to json", http.StatusInternalServerError)
 	}
@@ -69,7 +97,7 @@ func (p *Products) MiddlewareValidateProduct(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//Serialize product from request body
 		prod := data.Product{}
-		err := prod.FromJSON(r.Body)
+		err := data.FromJSON(prod, r.Body)
 		if err != nil {
 			p.l.Println("[ERROR]: Deserializing product data")
 			http.Error(w, "Invalid product data", http.StatusBadRequest)
