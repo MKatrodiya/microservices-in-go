@@ -47,10 +47,10 @@ func GetProducts() Products {
 }
 
 // AddProduct adds a new product to the database
-func AddProduct(p *Product) {
+func AddProduct(p Product) {
 	p.ID = getNextID()
 
-	productsList = append(productsList, p)
+	productsList = append(productsList, &p)
 }
 
 // getNextID returns the next available id for the product
@@ -62,12 +62,13 @@ func getNextID() int {
 // UpdateProduct modifies the existing product with the given id
 // with the given updated product
 // If a product is not found, this returns a ProductNotFound error
-func UpdateProduct(updatedProduct *Product) error {
-	i := findIndexByProductID(updatedProduct.ID)
+func UpdateProduct(id int, updatedProduct Product) error {
+	i := findIndexByProductID(id)
 	if i == -1 {
 		return ErrProductNotFound
 	}
-	productsList[i] = updatedProduct
+	updatedProduct.ID = id
+	productsList[i] = &updatedProduct
 	return nil
 }
 
@@ -78,7 +79,7 @@ func DeleteProduct(id int) error {
 		return ErrProductNotFound
 	}
 
-	productsList = append(productsList[:i], productsList[i+1])
+	productsList = append(productsList[:i], productsList[i+1:]...)
 
 	return nil
 }

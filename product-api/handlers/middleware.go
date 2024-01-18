@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/MKatrodiya/ProductMicroservices/data"
@@ -10,8 +9,8 @@ import (
 
 func (p *Products) MiddlewareValidateProduct(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//Serialize product from request body
-		prod := data.Product{}
+		//Deserialize product from request body
+		prod := &data.Product{}
 		err := data.FromJSON(prod, r.Body)
 		if err != nil {
 			p.l.Println("[ERROR]: Deserializing product data")
@@ -21,12 +20,12 @@ func (p *Products) MiddlewareValidateProduct(next http.Handler) http.Handler {
 
 		//Validate product
 		errs := p.v.Validate(prod)
-		if errs != nil {
-			p.l.Println("[ERROR]: Validating product data")
-			http.Error(
-				w,
-				fmt.Sprintf("Invalid product data: %s", errs),
-				http.StatusBadRequest)
+		if len(errs) != 0 {
+			p.l.Println("[ERROR] validating product", errs)
+
+			// return the validation messages as an array
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			data.ToJSON(&ValidationError{Messages: errs.Errors()}, w)
 			return
 		}
 

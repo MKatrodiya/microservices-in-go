@@ -19,6 +19,6 @@ func (p *Products) Add(w http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle POST request")
 
 	//fetch the product from the context
-	prod := r.Context().Value(KeyProduct{}).(data.Product)
-	data.AddProduct(&prod)
+	prod := r.Context().Value(KeyProduct{}).(*data.Product)
+	data.AddProduct(*prod)
 }

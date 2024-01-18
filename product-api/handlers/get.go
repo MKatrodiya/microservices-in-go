@@ -6,7 +6,7 @@ import (
 	"github.com/MKatrodiya/ProductMicroservices/data"
 )
 
-// swagger:route GET /products products listProducts
+// swagger:route GET /products products getAll
 // Returns the list of products
 // responses:
 // 		200:productsResponse
@@ -25,7 +25,7 @@ func (p *Products) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// swagger:route GET /products/{id} products listSingle
+// swagger:route GET /products/{id} products getSingle
 // Return a list of products from the database
 // responses:
 //	200: productResponse
@@ -57,6 +57,7 @@ func (p *Products) GetSingle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Add("Content-Type", "application/json")
 	err = data.ToJSON(prod, w)
 	if err != nil {
 		p.l.Println("[ERROR] serializing product", err)

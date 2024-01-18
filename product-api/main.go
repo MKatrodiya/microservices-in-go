@@ -27,15 +27,15 @@ func main() {
 	getRouter.HandleFunc("/products/{id:[0-9]+}", ph.GetSingle)
 
 	postRouter := router.Methods(http.MethodPost).Subrouter()
-	postRouter.HandleFunc("/", ph.Add)
+	postRouter.HandleFunc("/products", ph.Add)
 	postRouter.Use(ph.MiddlewareValidateProduct)
 
 	putRouter := router.Methods(http.MethodPut).Subrouter()
-	putRouter.HandleFunc("/{id:[0-9]+}", ph.Update)
+	putRouter.HandleFunc("/products/{id:[0-9]+}", ph.Update)
 	putRouter.Use(ph.MiddlewareValidateProduct)
 
 	deleteRouter := router.Methods(http.MethodDelete).Subrouter()
-	deleteRouter.HandleFunc("/{id:[0-9]+}", ph.Delete)
+	deleteRouter.HandleFunc("/products/{id:[0-9]+}", ph.Delete)
 
 	// handler for documentation
 	opts := middleware.RedocOpts{

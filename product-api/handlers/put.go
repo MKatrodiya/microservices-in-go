@@ -17,11 +17,12 @@ import (
 // Update handles PUT requests to update products
 func (p *Products) Update(w http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle PUT request")
+	id := getProductID(r)
 
 	//fetxh product from the context
-	prod := r.Context().Value(KeyProduct{}).(data.Product)
+	prod := r.Context().Value(KeyProduct{}).(*data.Product)
 
-	err := data.UpdateProduct(&prod)
+	err := data.UpdateProduct(id, *prod)
 	if err == data.ErrProductNotFound {
 		p.l.Println("[ERROR] product not found", err)
 
